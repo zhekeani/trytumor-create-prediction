@@ -1,0 +1,8 @@
+services:
+  create-predictions:
+    image: asia-southeast2-docker.pkg.dev/play-ground-421204/play-ground-fastapi-run/fastapi-run:v1.0.0
+    command: uvicorn app.main:app --host 0.0.0.0 --reload --port 8080
+    env_file:
+      - ./.env
+    ports:
+      - "8080:8080"
