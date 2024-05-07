@@ -1,33 +1,15 @@
 from typing import Annotated
 from fastapi import Depends, Header, HTTPException, status
 from jose import JWTError, jwt
-import base64
-import json
 
 from .config.config import Settings, get_settings
 
 
 class TokenPayload:
-    def __init__(self, userId, username, fullName):
-        self.user_id = userId
-        self.username = username
+    def __init__(self, doctorId, doctorName, fullName, iat, exp):
+        self.user_id = doctorId
+        self.username = doctorName
         self.full_name = fullName
-
-
-class JwtConfig:
-    def __init__(
-        self,
-        jwt_secret: str,
-        jwt_refresh_secret: str,
-        jwt_testing_secret: str,
-        jwt_expiration: int,
-        jwt_refresh_expiration: int,
-    ):
-        self.jwt_secret = jwt_secret
-        self.jwt_refresh_secret = jwt_refresh_secret
-        self.jwt_testing_secret = jwt_testing_secret
-        self.jwt_expiration = jwt_expiration
-        self.jwt_refresh_expiration = jwt_refresh_expiration
 
 
 # Define common authentication exception
@@ -38,17 +20,11 @@ credentials_exception = HTTPException(
 )
 
 
-def decode_jwt_config(settings: Annotated[Settings, Depends(get_settings)]):
+def get_jwt_secret(settings: Annotated[Settings, Depends(get_settings)]):
     # Decode the Encoded JWT config
-    encoded_jwt_config = settings.jwt_config
+    jwt_secret = settings.jwt_secret
 
-    decoded_bytes = base64.b64decode(encoded_jwt_config)
-    decoded_json = decoded_bytes.decode("utf-8")
-    decoded_dict = json.loads(decoded_json)
-
-    jwt_config = JwtConfig(**decoded_dict)
-
-    return jwt_config
+    return jwt_secret
 
 
 def check_auth_token_header(auth_token: Annotated[str | None, Header()] = None):
@@ -59,16 +35,15 @@ def check_auth_token_header(auth_token: Annotated[str | None, Header()] = None):
 
 
 def validate_auth_token(
-    jwt_config: Annotated[JwtConfig, Depends(decode_jwt_config)],
+    jwt_secret: Annotated[str, Depends(get_jwt_secret)],
     auth_token: Annotated[str, Depends(check_auth_token_header)],
 ):
-    jwt_secret = jwt_config.jwt_secret
     ALGORITHM = "HS256"
 
     try:
         # Decode the token and extract the payload
         decoded_token = jwt.decode(auth_token, jwt_secret, algorithms=[ALGORITHM])
-        token_payload_data: dict = decoded_token.get("tokenPayload")
+        token_payload_data: dict = decoded_token
         token_payload = TokenPayload(**token_payload_data)
 
         # Check the token payload
