@@ -9,7 +9,7 @@ from google.cloud import pubsub_v1, storage
 from google.cloud.storage import Bucket
 
 from .config.config import Settings, get_settings
-from logger.app_logger import get_app_logger
+from .logger.app_logger import get_app_logger
 
 
 def get_logger():
