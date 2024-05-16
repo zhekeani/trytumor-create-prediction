@@ -1,8 +1,7 @@
 from fastapi import FastAPI
-
 from .routers import prediction
 
-app = FastAPI()
+app = FastAPI(title="FastAPI webhook", debug=True)
 
 
 @app.get("/")

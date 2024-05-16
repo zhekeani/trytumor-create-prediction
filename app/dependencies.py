@@ -1,8 +1,59 @@
 from typing import Annotated
-from fastapi import Depends, Header, HTTPException, status
+from fastapi import Depends, Header, HTTPException, status, Request
 from jose import JWTError, jwt
+from logging import Logger
+import base64
+import json
+from google.oauth2 import service_account
+from google.cloud import pubsub_v1, storage
+from google.cloud.storage import Bucket
 
 from .config.config import Settings, get_settings
+from logger.app_logger import get_app_logger
+
+
+def get_logger():
+    return get_app_logger(__name__)
+
+
+def get_publisher_client(settings: Annotated[Settings, Depends(get_settings)]):
+    encoded_key = settings.service_account_key
+    decoded_key = base64.b64decode(encoded_key)
+    service_account_info = json.loads(decoded_key)
+
+    credentials = service_account.Credentials.from_service_account_info(
+        service_account_info
+    )
+    publisher_client = pubsub_v1.PublisherClient(credentials=credentials)
+    return publisher_client
+
+
+def get_subscriber_client(settings: Annotated[Settings, Depends(get_settings)]):
+    encoded_key = settings.service_account_key
+    decoded_key = base64.b64decode(encoded_key)
+    service_account_info = json.loads(decoded_key)
+
+    credentials = service_account.Credentials.from_service_account_info(
+        service_account_info
+    )
+    subscriber_client = pubsub_v1.SubscriberClient(credentials=credentials)
+    return subscriber_client
+
+
+def get_storage_bucket(settings: Annotated[Settings, Depends(get_settings)]) -> Bucket:
+    encoded_key = settings.service_account_key
+    decoded_key = base64.b64decode(encoded_key)
+    service_account_info = json.loads(decoded_key)
+
+    credentials = service_account.Credentials.from_service_account_info(
+        service_account_info
+    )
+    storage_client = storage.Client(credentials=credentials)
+
+    bucket_name = settings.bucket_name
+    bucket = storage_client.bucket(bucket_name)
+
+    return bucket
 
 
 class TokenPayload:

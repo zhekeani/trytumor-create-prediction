@@ -30,10 +30,10 @@ class PredictionsService:
         }
 
         # Read image file contents
-        contents = await image.read()
+        # contents = await image.read()
 
         # Convert contents to PIL image
-        img = Image.open(BytesIO(contents))
+        img = Image.open(BytesIO(image))
 
         image_to_predict = self._preprocess_image(img)
 

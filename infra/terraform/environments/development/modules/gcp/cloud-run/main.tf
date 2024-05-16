@@ -20,7 +20,7 @@ locals {
 
 # Create the Cloud Run service
 resource "google_cloud_run_service" "run_service" {
-  name     = local.app_service_name
+  name     = var.app_service_name
   location = var.location
 
   template {

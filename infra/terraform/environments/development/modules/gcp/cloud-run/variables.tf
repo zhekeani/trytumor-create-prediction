@@ -14,7 +14,7 @@ variable "jwt_config" {
   description = "JWT configuration used inside FastAPI web server."
 }
 
-variable app_service_name {
+variable "app_service_name" {
   type        = string
   description = "Cloud Run app service name."
 }
