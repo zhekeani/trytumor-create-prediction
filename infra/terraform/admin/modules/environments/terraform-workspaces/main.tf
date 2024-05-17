@@ -34,7 +34,9 @@ locals {
         "roles/artifactregistry.admin",
         "roles/iam.workloadIdentityPoolAdmin",
         "roles/secretmanager.admin",
-        "roles/run.admin"
+        "roles/run.admin",
+        "roles/cloudfunctions.admin",
+        "roles/pubsub.admin"
       ]
     }
   }

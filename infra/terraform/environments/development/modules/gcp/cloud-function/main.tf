@@ -1,5 +1,3 @@
-data "google_project" "current" {}
-
 # Enable Cloud Run API
 module "project-services" {
   source  = "terraform-google-modules/project-factory/google//modules/project_services"
@@ -25,20 +23,6 @@ locals {
   fn_entry_point = "handlePostRequest"
 }
 
-data "archive_file" "source" {
-  type        = "zip"
-  source_dir  = var.archive.source_dir
-  output_path = var.archive.output_path
-}
-
-resource "google_storage_bucket_object" "object" {
-  name         = "src-${data.archive_file.source.output_md5}.zip"
-  bucket       = var.storage_bucket_name
-  source       = data.archive_file.source.output_path
-  content_type = "application/zip"
-
-  depends_on = [data.archive_file.source]
-}
 
 resource "google_cloudfunctions2_function" "function" {
   name        = local.fn_name
@@ -51,7 +35,7 @@ resource "google_cloudfunctions2_function" "function" {
     source {
       storage_source {
         bucket = var.storage_bucket_name
-        object = google_storage_bucket_object.object.name
+        object = var.cloud_fn_zip_path
       }
     }
   }
@@ -79,8 +63,7 @@ resource "google_cloudfunctions2_function" "function" {
   }
 
   depends_on = [
-    module.project-services,
-    google_storage_bucket_object.object
+    module.project-services
   ]
 }
 

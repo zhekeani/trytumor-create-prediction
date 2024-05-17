@@ -1,21 +1,15 @@
-data "google_project" "current" {}
-
 # Enable Cloud Run API
 module "project-services" {
   source  = "terraform-google-modules/project-factory/google//modules/project_services"
   version = "~> 14.5"
 
-  project_id                  = data.google_project.current.project_id
+  project_id                  = var.project_id
   enable_apis                 = true
   disable_services_on_destroy = false
 
   activate_apis = [
     "run.googleapis.com"
   ]
-}
-
-locals {
-  app_service_name = "fastapi-web-server"
 }
 
 # Create the Cloud Run service
@@ -27,9 +21,35 @@ resource "google_cloud_run_service" "run_service" {
     spec {
       containers {
         image = var.docker_image_url
+        ports {
+          container_port = var.container_port
+        }
         env {
-          name  = "JWT_CONFIG"
-          value = var.jwt_config
+          name  = "PROJECT_ID"
+          value = var.env.project_id
+        }
+        env {
+          name  = "SERVICE_ACCOUNT_KEY"
+          value = var.env.service_account_key
+        }
+        env {
+          name  = "BUCKET_NAME"
+          value = var.env.bucket_name
+        }
+        env {
+          name  = "JWT_SECRET"
+          value = var.env.jwt_secret
+        }
+
+        resources {
+          limits = {
+            cpu    = "1"
+            memory = "2048Mi"
+          }
+          requests = {
+            cpu    = "1"
+            memory = "2048Mi"
+          }
         }
       }
       container_concurrency = 1
@@ -51,9 +71,6 @@ resource "google_cloud_run_service_iam_member" "run_all_users" {
   location = google_cloud_run_service.run_service.location
   role     = "roles/run.invoker"
   member   = "allUsers"
-}
 
-output "service_url" {
-  value       = google_cloud_run_service.run_service.status[0].url
-  description = "Cloud Run server URL."
+  depends_on = [google_cloud_run_service.run_service]
 }

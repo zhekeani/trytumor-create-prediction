@@ -28,14 +28,10 @@ variable "project_id" {
   description = "GCP project ID."
 }
 
-variable "archive" {
-  type = object({
-    source_dir  = string
-    output_path = string
-  })
-  description = "Archive source directory & output directory path"
+variable "cloud_fn_zip_path" {
+  type        = string
+  description = "Storage bucket path to uploaded cloud function zipped source code."
 }
-
 
 output "function_uri" {
   value = google_cloudfunctions2_function.function.service_config[0].uri

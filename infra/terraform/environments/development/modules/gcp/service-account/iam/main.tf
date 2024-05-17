@@ -15,6 +15,7 @@ module "project-services" {
 module "ar_reader_project_iam_bindings" {
   source  = "terraform-google-modules/iam/google//modules/projects_iam"
   version = "~> 7.7"
+  mode    = "additive"
 
   projects = [var.project_id]
 
